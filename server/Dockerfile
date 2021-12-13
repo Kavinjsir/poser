@@ -15,11 +15,10 @@ RUN npm ci
 # Bundle app source
 COPY . .
 
-RUN npm run transpile
+RUN ln -s /app_config/config.json src/config.json && \
+    npm run transpile
 
 EXPOSE 3003
-
-RUN ln -s /app_config/config.json config.json
 
 CMD [ "node", "dist/index.js" ]
 

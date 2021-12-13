@@ -1,0 +1,6 @@
+.ipynb_checkpoints
+*config.json*
+pose-output.csv
+*node_modules*
+server/dist
+!tsconfig.json

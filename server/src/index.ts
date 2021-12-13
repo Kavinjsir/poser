@@ -5,8 +5,10 @@ import Cors from '@koa/cors';
 // import { poseRouter } from './pose';
 import db from './db';
 
+const API_VERSION = "/api/v1";
+
 const poseRouter = new Router({
-  prefix: "/poses"
+  prefix: `${API_VERSION}/poses`
 });
 
 poseRouter.get(

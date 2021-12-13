@@ -15,9 +15,8 @@ RUN npm ci
 # Bundle app source
 COPY . .
 
-COPY /app_config/config.json src/config.json
-
-RUN npm run transpile
+RUN cp config.json src/config.json && \
+    npm run transpile
 
 EXPOSE 3003
 

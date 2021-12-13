@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d@0.2/landmark_grid.css" crossorigin="anonymous">
+    <meta charset="utf-8">
+    <link rel="icon" href="favicon.ico">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d@0.2/control_utils_3d.js" crossorigin="anonymous"></script>
+
+    <script src='https://unpkg.com/react@16.14.0/umd/react.production.min.js'></script>
+    <script src='https://unpkg.com/react-dom@16.14.0/umd/react-dom.production.min.js'></script>
+    <script src='https://unpkg.com/react-router-dom@5.0.0/umd/react-router-dom.min.js'></script>
+    <script src="https://unpkg.com/react-query/dist/react-query.production.min.js"></script>
+
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <style>
+    body {
+      background-color: rgb(255, 255, 255);
+      box-sizing: border-box;
+      color: rgb(92, 89, 98);
+      display: block;
+      font-family: system-ui, -apple-system, "system-ui", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      height: 11738.7px;
+      line-height: 22.4px;
+      margin-bottom: 0px;
+      margin-left:0px;
+      margin-right:0px;
+      margin-top: 0px;
+      overflow-y: scroll;
+      padding-bottom: 0px;
+      position: static;
+      text-size-adjust: 100%;
+    }
+  </style>
+  <body>
+    <style>
+      .namelist {
+        margin-top: 0;
+        overflow: auto;
+        max-height: 640px;
+        max-height:821px;
+        flex-wrap: nowrap;
+        position: fixed;
+        width: 248px;
+        flex-direction: column;
+        border-right: 1px solid #eeebee;
+        align-items: flex-end;
+        background-color: #f5f6fa;
+        font-family:system-ui, -apple-system, "system-ui", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size: inherit;
+        line-height: 1.4;
+        color: #5c5962;
+        text-size-adjust:100%
+      }
+      .sideheader {
+        background: url(https://www.bu.edu/cdn/images/logos/masterplate112x50.png) no-repeat 0 0;
+        display: block;
+        height: 50px;
+        overflow: hidden;
+        text-indent: 100%;
+        white-space: nowrap;
+        width: 112px;
+        margin-left: 40px;
+        margin-top: 5px;
+      }
+      .item {
+        box-sizing:border-box;
+        color:rgb(92, 89, 98);
+        display:list-item;
+        font-family:system-ui, -apple-system, "system-ui", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size:14px;
+        line-height:24px;
+        list-style-image:none;
+        list-style-position:outside;
+        list-style-type:none;
+        margin-bottom:0px;
+        margin-left:0px;
+        margin-right:0px;
+        margin-top:0px;
+        position:relative;
+        text-align:left;
+        text-decoration-color:rgb(92, 89, 98);
+        text-decoration-line:none;
+        text-decoration-style:solid;
+        text-decoration-thickness:auto;
+        text-size-adjust:100%;
+        cursor: pointer;
+      }
+      .main{
+        line-height:22.4px;
+        margin-left:248px;
+        margin-top:0px;
+        max-width:800px;
+        position:relative;
+        text-size-adjust:100%;
+      }
+      .displaywrapper {
+        border-bottom-left-radius:4px;
+        border-bottom-right-radius:4px;
+        border-top-left-radius:4px;
+        border-top-right-radius:4px;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 12%), 0 3px 10px rgb(0 0 0 / 8%);
+        box-sizing:border-box;
+        color:rgb(92, 89, 98);
+        display:block;
+        font-family:system-ui, -apple-system, "system-ui", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-size:16px;
+        line-height:25.6px;
+        margin-bottom:24px;
+        margin-top:8px;
+        max-width:100%;
+        overflow-x:auto;
+      }
+      .display {
+        border-bottom-color:rgb(128, 128, 128);
+        border-collapse:separate;
+        border-left-color:rgb(128, 128, 128);
+        border-right-color:rgb(128, 128, 128);
+        border-top-color:rgb(128, 128, 128);
+        display:table;
+        margin-top:0px;
+        min-width:100%;
+        min-height: 720px;
+        text-indent:0px;
+        text-size-adjust:100%;
+        -webkit-border-horizontal-spacing:2px;
+        -webkit-border-vertical-spacing:2px;
+      }
+    </style>
+
+    <div id='root'></div>
+    <script type="text/babel" data-type="module">
+
+      const { useState, useEffect, useRef } = React;
+      const { Link, Route } = ReactRouterDOM;
+      const { QueryClient, QueryClientProvider, useQuery } = ReactQuery;
+
+      // DATA Source Server
+      const BASE_URL = "http://localhost:3003/";
+
+      // Body Skeleton Joints
+      const connections = [
+        [8,10],  // ls->lw
+        [2,10],  // le->lw
+        [4,0],   // lh->la
+        [10,0],  // lw->la
+        [10,6],  // lw->lk
+      
+        [9,11],  // rs->rw
+        [3,11],  // re->rw
+        [5,1],   // rh->ra
+        [11,1],  // rw->ra
+        [11,7],  // rw->rk
+      
+        [10,11], // lw->rw
+        [6,7],   // lk->rk
+        [0,1],   // la->ra
+      ];
+
+      const getPoseDataPerFrame = (data, frame) => {
+        const leftAnkle = {
+          "x": data["xX_left_ankle"][frame],
+          "y": data["yY_left_ankle"][frame],
+          "z": data["zZ_left_ankle"][frame],
+          "visibility": 0.9,
+        };
+
+        const rightAnkle = {
+          "x": data["xX_right_ankle"][frame],
+          "y": data["yY_right_ankle"][frame],
+          "z": data["zZ_right_ankle"][frame],
+          "visibility": 0.9,
+        };
+
+        const leftElbow = {
+          "x": data["xX_left_elbow"][frame],
+          "y": data["yY_left_elbow"][frame],
+          "z": data["zZ_left_elbow"][frame],
+          "visibility": 0.9,
+        };
+
+        const rightElbow = {
+          "x": data["xX_right_elbow"][frame],
+          "y": data["yY_right_elbow"][frame],
+          "z": data["zZ_right_elbow"][frame],
+          "visibility": 0.9,
+        };
+
+        const leftHip = {
+          "x": data["xX_left_hip"][frame],
+          "y": data["yY_left_hip"][frame],
+          "z": data["zZ_left_hip"][frame],
+          "visibility": 0.9,
+        };
+
+        const rightHip = {
+          "x": data["xX_right_hip"][frame],
+          "y": data["yY_right_hip"][frame],
+          "z": data["zZ_right_hip"][frame],
+          "visibility": 0.9,
+        };
+
+        const leftKnee = {
+          "x": data["xX_left_knee"][frame],
+          "y": data["yY_left_knee"][frame],
+          "z": data["zZ_left_knee"][frame],
+          "visibility": 0.9,
+        };
+
+        const rightKnee = {
+          "x": data["xX_right_knee"][frame],
+          "y": data["yY_right_knee"][frame],
+          "z": data["zZ_right_knee"][frame],
+          "visibility": 0.9,
+        };
+
+        const leftShoulder = {
+          "x": data["xX_left_shoulder"][frame],
+          "y": data["yY_left_shoulder"][frame],
+          "z": data["zZ_left_shoulder"][frame],
+          "visibility": 0.9,
+        };
+
+        const rightShoulder = {
+          "x": data["xX_right_shoulder"][frame],
+          "y": data["yY_right_shoulder"][frame],
+          "z": data["zZ_right_shoulder"][frame],
+          "visibility": 0.9,
+        };
+
+        const leftWrist = {
+          "x": data["xX_left_wrist"][frame],
+          "y": data["yY_left_wrist"][frame],
+          "z": data["zZ_left_wrist"][frame],
+          "visibility": 0.9,
+        };
+
+        const rightWrist = {
+          "x": data["xX_right_wrist"][frame],
+          "y": data["yY_right_wrist"][frame],
+          "z": data["zZ_right_wrist"][frame],
+          "visibility": 0.9,
+        };
+
+        return [
+          leftAnkle,     // 0
+          rightAnkle,    // 1
+          leftElbow,     // 2
+          rightElbow,    // 3
+          leftHip,       // 4
+          rightHip,      // 5
+          leftKnee,      // 6
+          rightKnee,     // 7
+          leftShoulder,  // 8
+          rightShoulder, // 9
+          leftWrist,     // 10
+          rightWrist,    // 11
+        ];
+      }
+
+      const App = () => (
+        <ReactRouterDOM.HashRouter>
+          <Route path="/" exact component={RemoteDataProvider} />
+        </ReactRouterDOM.HashRouter>
+      )
+
+      const queryClient = new QueryClient();
+
+      export default function RemoteDataProvider() {
+        return (
+          <QueryClientProvider client={queryClient}>
+            <PoseRenderer />
+          </QueryClientProvider>
+        );
+      }
+      
+      const PoseRenderer = () => {
+        const [ poseName, setPoseName ] = useState("");
+
+        const { isLoading, error, data } = useQuery('poseNames', () =>
+          fetch(`${BASE_URL}poses`).then(res =>res.json())
+        );
+
+        const selectPose = (poseName) => setPoseName(poseName);
+
+        if (isLoading) return 'Loading...';
+
+        if (error) return 'An error has occurred: ' + error.message;
+
+        return (
+          <div className="pose">
+            <PoseList poseNamesList={data.names} selectPose={selectPose} />
+            {poseName ? <PoseDetails poseName={poseName} /> : ""}
+          </div>
+        );
+      };
+
+      const PoseList = ( { poseNamesList, selectPose } ) => {
+        const onClickPoseName = event => selectPose(event.currentTarget.innerText);
+
+        return (
+          <div className="namelist">
+            <div className="sideheader" />
+           <ul>
+             { (poseNamesList || []).map((name, idx) => <li className="item" key={idx} onClick={onClickPoseName} data-name={name} >{name}</li>) }
+           </ul>
+          </div>
+        );
+      };
+
+      const PoseDetails = ( { poseName } ) => {
+        const { isLoading, error, data } = useQuery(poseName, () => 
+          fetch(`${BASE_URL}poses/${poseName}`).then(res => res.json())
+        );
+
+        if (isLoading) return 'Loading...';
+
+        if (error) return 'An error has occurred: ' + error.message;
+
+        return (
+          <div class="main">
+            <div class="displaywrapper"><PoseDisplay data={data.poseDetails[0]} /></div>
+          </div>
+        );
+      };
+
+      const PoseDisplay = ({ data }) => {
+        const ldmrkGrid = useRef(null);
+
+        React.useEffect(() => {
+          if (!ldmrkGrid.current) return;
+
+          const grid = new LandmarkGrid(ldmrkGrid.current, {
+                connectionColor: 0xcccccc,
+                definedColors: [
+                  { name: "LEFT", value: 0xffa500 },
+                  { name: "RIGHT", value: 0x00ffff },
+                ],
+                range: 2,
+                fitToGrid: true,
+                labelSuffix: "m",
+                landmarkSize: 2,
+                numCellsPerAxis: 4,
+                showHidden: false,
+                centered: true,
+              });
+
+          const frame = { idx: 0 };
+
+          const timerID = setInterval(() => {
+            const poses = getPoseDataPerFrame(data, frame.idx);
+            grid.updateLandmarks(poses, connections);
+
+            if (frame.idx >= data["xX_left_ankle"].length - 1) frame.idx = 0;
+            else frame.idx = frame.idx + 1;
+          }, 40);
+
+          return () => clearInterval(timerID);
+        }, []);
+
+        return <div className="display" ref={ldmrkGrid}></div>;
+      };
+
+      ReactDOM.render(<App />, document.querySelector('#root'));
+    </script>
+  </body>
+</html>
